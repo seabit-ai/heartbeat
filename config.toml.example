@@ -1,0 +1,5 @@
+hec_url = "https://splunk.example.com/services/collector/event"
+hec_token = "YOUR-HEC-TOKEN-HERE"
+hb_interval_seconds = 60
+host = ""   # auto-detect if empty
+index = "heartbeat"
