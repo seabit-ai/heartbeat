@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"os/signal"
 	"strings"
@@ -133,7 +132,7 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string, sample
 		log.Printf("uptime: %v", err)
 	}
 
-	now := math.Round(float64(time.Now().UnixNano())/1e6) / 1e3
+	now := time.Now().Unix()
 
 	inner := heartbeatEvent{
 		Event:             "hostAgent",

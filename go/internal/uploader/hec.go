@@ -10,7 +10,7 @@ import (
 
 // HECEvent is the Splunk HEC payload.
 type HECEvent struct {
-	Time   float64     `json:"time"`
+	Time   int64       `json:"time"`
 	Host   string      `json:"host"`
 	Source string      `json:"source"`
 	Index  string      `json:"index,omitempty"`
