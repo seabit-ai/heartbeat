@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"strings"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -70,9 +70,13 @@ func main() {
 
 	hec := uploader.New(cfg.HECURL, cfg.HECToken)
 
-	interval := time.Duration(cfg.HBIntervalSeconds) * time.Second
+	// Start background CPU sampler (every cpu_detail_interval_seconds, default 10s)
+	sampler := &collector.CpuSampler{}
+	sampler.Start(cfg.CPUDetailIntervalSeconds)
 
-	log.Printf("heartbeat starting: host=%s interval=%s", hostname, interval)
+	interval := time.Duration(cfg.HBIntervalSeconds) * time.Second
+	log.Printf("heartbeat starting: host=%s interval=%s cpuSampleInterval=%ds",
+		hostname, interval, cfg.CPUDetailIntervalSeconds)
 
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
@@ -82,14 +86,14 @@ func main() {
 	defer ticker.Stop()
 
 	// Run first beat immediately
-	if err := beat(cfg, hec, hostname); err != nil {
+	if err := beat(cfg, hec, hostname, sampler); err != nil {
 		log.Printf("beat error: %v", err)
 	}
 
 	for {
 		select {
 		case <-ticker.C:
-			if err := beat(cfg, hec, hostname); err != nil {
+			if err := beat(cfg, hec, hostname, sampler); err != nil {
 				log.Printf("beat error: %v", err)
 			}
 		case sig := <-stop:
@@ -99,13 +103,9 @@ func main() {
 	}
 }
 
-func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string) error {
-	// CPU: 1s sample
-	cpu, err := collector.CPUPercent()
-	if err != nil {
-		log.Printf("cpu: %v", err)
-	}
-	cpu = roundTo1(cpu)
+func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string, sampler *collector.CpuSampler) error {
+	// CPU: from background sampler (avg + detail string)
+	cpu, cpuDetail := sampler.GetAndReset()
 
 	// Memory
 	mem, err := collector.MemStats()
@@ -146,6 +146,7 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string) error 
 		MemPercent:        mem.PercentUsed,
 		MemMB:             mem.UsedMB,
 		CPU:               cpu,
+		CPUDetail:         cpuDetail,
 		CPUCount:          osInfo.CPUCount,
 		OS:                osInfo.OSName,
 		RxKByte:           net.RxKByte,
@@ -163,8 +164,8 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string) error 
 		Event:  inner,
 	}
 
-	log.Printf("event=sendHeartbeat cpu=%.1f memMB=%d memTotalMB=%d diskUsedMB=%d diskPercent=%d rxKByte=%d txKByte=%d uptimeMinutes=%d",
-		cpu, mem.UsedMB, mem.TotalMB, disk.UsedMB, disk.Percent, net.RxKByte, net.TxKByte, uptimeMin)
+	log.Printf("event=sendHeartbeat cpu=%.1f cpuSamples=%d memMB=%d memTotalMB=%d diskUsedMB=%d diskPercent=%d rxKByte=%d txKByte=%d uptimeMinutes=%d",
+		cpu, len(strings.Split(cpuDetail, ",")), mem.UsedMB, mem.TotalMB, disk.UsedMB, disk.Percent, net.RxKByte, net.TxKByte, uptimeMin)
 
 	if cfg.HECURL == "" || cfg.HECToken == "" {
 		if b, err := json.MarshalIndent(evt, "", "  "); err == nil {
@@ -174,8 +175,4 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string) error 
 	}
 
 	return hec.Send(evt)
-}
-
-func roundTo1(f float64) float64 {
-	return float64(int(f*10+0.5)) / 10
 }

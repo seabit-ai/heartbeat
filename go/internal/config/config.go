@@ -7,17 +7,19 @@ import (
 )
 
 type Config struct {
-	HECURL            string `toml:"hec_url"`
-	HECToken          string `toml:"hec_token"`
-	HBIntervalSeconds int    `toml:"hb_interval_seconds"`
-	Host              string `toml:"host"`
-	Index             string `toml:"index"`
+	HECURL                   string `toml:"hec_url"`
+	HECToken                 string `toml:"hec_token"`
+	HBIntervalSeconds        int    `toml:"hb_interval_seconds"`
+	CPUDetailIntervalSeconds int    `toml:"cpu_detail_interval_seconds"`
+	Host                     string `toml:"host"`
+	Index                    string `toml:"index"`
 }
 
 func Load(path string) (*Config, error) {
 	cfg := &Config{
-		HBIntervalSeconds: 60,
-		Index:             "heartbeat",
+		HBIntervalSeconds:        60,
+		CPUDetailIntervalSeconds: 10,
+		Index:                    "heartbeat",
 	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return cfg, nil

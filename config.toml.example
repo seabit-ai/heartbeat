@@ -1,5 +1,6 @@
 hec_url = "https://splunk.example.com/services/collector/event"
 hec_token = "YOUR-HEC-TOKEN-HERE"
 hb_interval_seconds = 60
-host = ""   # auto-detect if empty
+cpu_detail_interval_seconds = 10   # CPU sampling interval for cpuDetail field
+host = ""                          # auto-detect if empty
 index = "heartbeat"
