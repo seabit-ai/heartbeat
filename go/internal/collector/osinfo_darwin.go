@@ -7,17 +7,13 @@ import (
 	"strings"
 )
 
-// OSInfo holds OS and architecture information.
-type OSInfo struct {
-	OSName string
-	Arch   string
-}
-
 // GetOSInfo on Darwin uses sw_vers to get the macOS version.
 func GetOSInfo() OSInfo {
-	arch := runtime.GOARCH
-	osName := darwinOSName()
-	return OSInfo{OSName: osName, Arch: arch}
+	return OSInfo{
+		OSName:   darwinOSName(),
+		Arch:     runtime.GOARCH,
+		CPUCount: runtime.NumCPU(),
+	}
 }
 
 func darwinOSName() string {

@@ -10,17 +10,13 @@ import (
 	"strings"
 )
 
-// OSInfo holds OS and architecture information.
-type OSInfo struct {
-	OSName string
-	Arch   string
-}
-
-// GetOSInfo returns OS name and architecture.
+// GetOSInfo returns OS name, architecture, and CPU count.
 func GetOSInfo() OSInfo {
-	arch := runtime.GOARCH
-	osName := readOSRelease()
-	return OSInfo{OSName: osName, Arch: arch}
+	return OSInfo{
+		OSName:   readOSRelease(),
+		Arch:     runtime.GOARCH,
+		CPUCount: runtime.NumCPU(),
+	}
 }
 
 func readOSRelease() string {

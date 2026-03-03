@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -15,20 +16,24 @@ import (
 )
 
 // heartbeatEvent is the inner event payload sent to Splunk.
+// Field names match the original Node.js heartbeat for Splunk compatibility.
 type heartbeatEvent struct {
 	Event             string  `json:"event"`
 	Host              string  `json:"host"`
-	CPU               float64 `json:"cpu"`
+	Arch              string  `json:"arch"`
+	TotalMemoryMB     int64   `json:"totalMemoryMB"`
+	UptimeMinutes     int64   `json:"uptimeMinutes"`
 	MemTotalMB        int64   `json:"memTotalMB"`
-	MemUsedMB         int64   `json:"memUsedMB"`
 	MemPercent        int     `json:"memPercent"`
-	DiskUsedMB        int64   `json:"diskUsedMB"`
-	DiskPercent       int     `json:"diskPercent"`
+	MemMB             int64   `json:"memMB"`
+	CPU               float64 `json:"cpu"`
+	CPUDetail         string  `json:"cpuDetail,omitempty"`
+	CPUCount          int     `json:"cpuCount"`
+	OS                string  `json:"os"`
 	RxKByte           int64   `json:"rxKByte"`
 	TxKByte           int64   `json:"txKByte"`
-	OS                string  `json:"os"`
-	Arch              string  `json:"arch"`
-	UptimeMinutes     int64   `json:"uptimeMinutes"`
+	DiskUsedMB        int64   `json:"diskUsedMB"`
+	DiskPercent       int     `json:"diskPercent"`
 	HBIntervalSeconds int     `json:"hbIntervalSeconds"`
 }
 
@@ -128,17 +133,19 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string) error 
 	inner := heartbeatEvent{
 		Event:             "hostAgent",
 		Host:              hostname,
-		CPU:               cpu,
+		Arch:              osInfo.Arch,
+		TotalMemoryMB:     mem.TotalMB,
+		UptimeMinutes:     uptimeMin,
 		MemTotalMB:        mem.TotalMB,
-		MemUsedMB:         mem.UsedMB,
 		MemPercent:        mem.PercentUsed,
-		DiskUsedMB:        disk.UsedMB,
-		DiskPercent:       disk.Percent,
+		MemMB:             mem.UsedMB,
+		CPU:               cpu,
+		CPUCount:          osInfo.CPUCount,
+		OS:                osInfo.OSName,
 		RxKByte:           net.RxKByte,
 		TxKByte:           net.TxKByte,
-		OS:                osInfo.OSName,
-		Arch:              osInfo.Arch,
-		UptimeMinutes:     uptimeMin,
+		DiskUsedMB:        disk.UsedMB,
+		DiskPercent:       disk.Percent,
 		HBIntervalSeconds: cfg.HBIntervalSeconds,
 	}
 
@@ -150,11 +157,13 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string) error 
 		Event:  inner,
 	}
 
-	log.Printf("sending heartbeat: cpu=%.1f%% mem=%dMB/%dMB disk=%dMB rx=%dKB tx=%dKB",
-		cpu, mem.UsedMB, mem.TotalMB, disk.UsedMB, net.RxKByte, net.TxKByte)
+	log.Printf("event=sendHeartbeat cpu=%.1f memMB=%d memTotalMB=%d diskUsedMB=%d diskPercent=%d rxKByte=%d txKByte=%d uptimeMinutes=%d",
+		cpu, mem.UsedMB, mem.TotalMB, disk.UsedMB, disk.Percent, net.RxKByte, net.TxKByte, uptimeMin)
 
 	if cfg.HECURL == "" || cfg.HECToken == "" {
-		fmt.Printf("(dry-run, no HEC configured)\n")
+		if b, err := json.MarshalIndent(evt, "", "  "); err == nil {
+			fmt.Printf("(dry-run) payload:\n%s\n", string(b))
+		}
 		return nil
 	}
 

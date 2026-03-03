@@ -10,7 +10,7 @@ import (
 
 // UptimeMinutes on Darwin uses sysctl kern.boottime to compute uptime.
 func UptimeMinutes() (int64, error) {
-	out, err := exec.Command("sysctl", "-n", "kern.boottime").Output()
+	out, err := exec.Command("/usr/sbin/sysctl", "-n", "kern.boottime").Output()
 	if err != nil {
 		return 0, fmt.Errorf("sysctl kern.boottime: %w", err)
 	}

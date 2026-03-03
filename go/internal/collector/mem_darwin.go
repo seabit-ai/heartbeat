@@ -17,7 +17,7 @@ type MemInfo struct {
 // MemStats on Darwin uses sysctl to read memory info.
 func MemStats() (MemInfo, error) {
 	// Total physical memory
-	out, err := exec.Command("sysctl", "-n", "hw.memsize").Output()
+	out, err := exec.Command("/usr/sbin/sysctl", "-n", "hw.memsize").Output()
 	if err != nil {
 		return MemInfo{}, fmt.Errorf("sysctl hw.memsize: %w", err)
 	}
@@ -28,13 +28,13 @@ func MemStats() (MemInfo, error) {
 	totalMB := totalBytes / 1024 / 1024
 
 	// Page size and page stats via vm_stat
-	vmOut, err := exec.Command("vm_stat").Output()
+	vmOut, err := exec.Command("/usr/bin/vm_stat").Output()
 	if err != nil {
 		return MemInfo{}, fmt.Errorf("vm_stat: %w", err)
 	}
 
 	pageSize := int64(4096) // default
-	pageSizeOut, err := exec.Command("sysctl", "-n", "hw.pagesize").Output()
+	pageSizeOut, err := exec.Command("/usr/sbin/sysctl", "-n", "hw.pagesize").Output()
 	if err == nil {
 		if ps, err2 := strconv.ParseInt(strings.TrimSpace(string(pageSizeOut)), 10, 64); err2 == nil {
 			pageSize = ps

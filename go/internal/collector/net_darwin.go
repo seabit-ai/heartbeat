@@ -19,7 +19,7 @@ type ifaceBytes struct {
 }
 
 func netstatSnapshot() (map[string]ifaceBytes, error) {
-	out, err := exec.Command("netstat", "-ibn").Output()
+	out, err := exec.Command("/usr/sbin/netstat", "-ibn").Output()
 	if err != nil {
 		return nil, fmt.Errorf("netstat -ibn: %w", err)
 	}
