@@ -16,7 +16,8 @@ make build-all   # or make linux-amd64, make darwin-arm64, etc.
 # 2. (Optional) Dry-run test before installing
 # Run without config to see output (no HEC upload)
 ./dist/heartbeat-darwin-arm64   # or heartbeat-linux-amd64, etc.
-# Outputs sample payload to stdout, exits after one beat
+# Runs continuously, outputs sample payload every 60s (default interval)
+# Ctrl+C to stop after inspecting output
 
 # 3. Install
 sudo ./install.sh
