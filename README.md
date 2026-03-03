@@ -29,7 +29,28 @@ curl -fsSL \
   | sudo tee /etc/heartbeat/config.toml
 sudo vi /etc/heartbeat/config.toml   # Set hec_url and hec_token
 
-# 5. Install service (see "Deployment" section below)
+# 5. Install and start service
+# Linux (systemd):
+curl -fsSL \
+  https://raw.githubusercontent.com/seabit-ai/heartbeat/master/systemd/heartbeat.service \
+  | sudo tee /etc/systemd/system/heartbeat.service
+sudo systemctl daemon-reload
+sudo systemctl enable heartbeat
+sudo systemctl start heartbeat
+
+# macOS (launchd):
+curl -fsSL \
+  https://raw.githubusercontent.com/seabit-ai/heartbeat/master/launchd/com.seabit.heartbeat.plist \
+  | sudo tee /Library/LaunchDaemons/com.seabit.heartbeat.plist
+sudo launchctl load /Library/LaunchDaemons/com.seabit.heartbeat.plist
+
+# 6. Check status
+# Linux:
+sudo systemctl status heartbeat
+sudo journalctl -u heartbeat -f
+
+# macOS:
+sudo tail -f /var/log/heartbeat.log
 ```
 
 ### Option B: Build from source
