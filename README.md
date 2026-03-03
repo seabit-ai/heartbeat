@@ -8,22 +8,26 @@ Host metrics agent — collects CPU/mem/disk/network every 60s and posts to Splu
 ## Quick Start
 
 ```bash
-# 1. Build for your platform
-make darwin-arm64   # macOS M-series
-make linux-amd64    # x86_64 Linux
-make linux-arm64    # ARM64 (NanoPi M6, Pi 4/5)
-make linux-arm      # ARMv7 (Pi 2/3)
+# 1. Clone and build
+git clone https://github.com/seabit-ai/heartbeat.git
+cd heartbeat
+make build-all   # or make linux-amd64, make darwin-arm64, etc.
 
-# Or build all
-make build-all
+# 2. Install
+sudo ./install.sh
 
-# 2. Create config
-cp config.toml.example config.toml
-vi config.toml   # set hec_url, hec_token
+# 3. Configure
+sudo vi /etc/heartbeat/config.toml   # set hec_url and hec_token
 
-# 3. Run
-./dist/heartbeat-darwin-arm64 -config config.toml
+# 4. Start service
+# Linux:
+sudo systemctl enable heartbeat && sudo systemctl start heartbeat
+
+# macOS:
+sudo launchctl load /Library/LaunchDaemons/com.seabit.heartbeat.plist
 ```
+
+The `install.sh` script auto-detects your platform and installs the correct binary.
 
 ## Heartbeat Payload
 
