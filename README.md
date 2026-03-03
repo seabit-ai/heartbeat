@@ -13,13 +13,18 @@ git clone https://github.com/seabit-ai/heartbeat.git
 cd heartbeat
 make build-all   # or make linux-amd64, make darwin-arm64, etc.
 
-# 2. Install
+# 2. (Optional) Dry-run test before installing
+# Run without config to see output (no HEC upload)
+./dist/heartbeat-darwin-arm64   # or heartbeat-linux-amd64, etc.
+# Outputs sample payload to stdout, exits after one beat
+
+# 3. Install
 sudo ./install.sh
 
-# 3. Configure
+# 4. Configure
 sudo vi /etc/heartbeat/config.toml   # set hec_url and hec_token
 
-# 4. Start service
+# 5. Start service
 # Linux:
 sudo systemctl enable heartbeat && sudo systemctl start heartbeat
 
@@ -110,13 +115,20 @@ Cross-compile with `make build-all` — produces all 4 binaries in `dist/`.
 ```bash
 # Run locally (dry-run mode if hec_url empty)
 go run ./go/cmd/heartbeat
+# Outputs JSON payload to stdout, no upload
 
-# Build
+# With custom config
+go run ./go/cmd/heartbeat -config /path/to/config.toml
+
+# Build and test
 go build -o heartbeat ./go/cmd/heartbeat
+./heartbeat   # dry-run (prints payload, no HEC upload)
 
-# Test
+# Run tests
 go test ./...
 ```
+
+**Dry-run behavior**: If `hec_url` or `hec_token` is empty in config (or no config file), heartbeat prints the JSON payload to stdout instead of uploading to Splunk. This is useful for testing output format before deployment.
 
 ## Legacy Node.js Version
 
