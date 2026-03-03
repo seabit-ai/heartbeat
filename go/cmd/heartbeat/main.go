@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 	"os"
 	"os/signal"
 	"syscall"
@@ -49,6 +50,10 @@ func main() {
 	hostname := cfg.Host
 	if hostname == "" {
 		if h, err := os.Hostname(); err == nil {
+			// Use short hostname only (strip domain suffix)
+			if idx := strings.Index(h, "."); idx > 0 {
+				h = h[:idx]
+			}
 			hostname = h
 		} else {
 			hostname = "unknown"
