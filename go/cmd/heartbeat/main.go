@@ -23,7 +23,6 @@ type heartbeatEvent struct {
 	Event             string  `json:"event"`
 	Host              string  `json:"host"`
 	Arch              string  `json:"arch"`
-	TotalMemoryMB     int64   `json:"totalMemoryMB"`
 	UptimeMinutes     int64   `json:"uptimeMinutes"`
 	MemTotalMB        int64   `json:"memTotalMB"`
 	MemPercent        int     `json:"memPercent"`
@@ -139,9 +138,8 @@ func beat(cfg *config.Config, hec *uploader.HECUploader, hostname string, sample
 	inner := heartbeatEvent{
 		Event:             "hostAgent",
 		Host:              hostname,
-		Arch:              osInfo.Arch,
-		TotalMemoryMB:     mem.TotalMB,
-		UptimeMinutes:     uptimeMin,
+		Arch:          osInfo.Arch,
+		UptimeMinutes: uptimeMin,
 		MemTotalMB:        mem.TotalMB,
 		MemPercent:        mem.PercentUsed,
 		MemMB:             mem.UsedMB,
