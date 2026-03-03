@@ -7,6 +7,33 @@ Host metrics agent — collects CPU/mem/disk/network every 60s and posts to Splu
 
 ## Quick Start
 
+### Option A: Pre-built binaries (no Go required)
+
+```bash
+# 1. Download binary for your platform
+PLATFORM=linux-arm64   # or linux-amd64, linux-arm, darwin-arm64
+curl -fsSL -o heartbeat \
+  https://github.com/seabit-ai/heartbeat/releases/latest/download/heartbeat-$PLATFORM
+
+# 2. (Optional) Dry-run test
+chmod +x heartbeat
+./heartbeat   # Runs in dry-run mode, prints JSON to stdout, Ctrl+C to stop
+
+# 3. Install
+sudo mv heartbeat /usr/local/bin/heartbeat
+
+# 4. Create config
+sudo mkdir -p /etc/heartbeat
+curl -fsSL \
+  https://github.com/seabit-ai/heartbeat/releases/latest/download/config.toml.example \
+  | sudo tee /etc/heartbeat/config.toml
+sudo vi /etc/heartbeat/config.toml   # Set hec_url and hec_token
+
+# 5. Install service (see "Deployment" section below)
+```
+
+### Option B: Build from source
+
 ```bash
 # 1. Clone and build
 git clone https://github.com/seabit-ai/heartbeat.git
