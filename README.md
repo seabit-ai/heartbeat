@@ -28,12 +28,18 @@ sudo vi /etc/heartbeat/config.toml   # set hec_url and hec_token
 # 5. Start service
 # Linux:
 sudo systemctl enable heartbeat && sudo systemctl start heartbeat
+sudo journalctl -u heartbeat -f   # View logs
 
 # macOS:
 sudo launchctl load /Library/LaunchDaemons/com.seabit.heartbeat.plist
+sudo tail -f /var/log/heartbeat.log   # View logs
 ```
 
 The `install.sh` script auto-detects your platform and installs the correct binary.
+
+**Logs:**
+- Linux: `sudo journalctl -u heartbeat -f` (systemd journal)
+- macOS: `sudo tail -f /var/log/heartbeat.log`
 
 ## Heartbeat Payload
 
@@ -78,7 +84,9 @@ host = ""                          # auto-detect if empty
 index = "heartbeat"
 ```
 
-## Deployment (Linux)
+## Deployment (Manual)
+
+### Linux
 
 ```bash
 # 1. Copy binary
@@ -95,10 +103,29 @@ sudo systemctl daemon-reload
 sudo systemctl enable heartbeat
 sudo systemctl start heartbeat
 
-# 4. Check status
+# 4. Check status and logs
 sudo systemctl status heartbeat
-sudo journalctl -u heartbeat -f
+sudo journalctl -u heartbeat -f   # Follow logs in real-time
 ```
+
+**Logs**: Captured by systemd journal. View with `journalctl -u heartbeat`.
+
+### macOS
+
+```bash
+# Use install.sh (see Quick Start above)
+# Or manually:
+sudo cp dist/heartbeat-darwin-arm64 /usr/local/bin/heartbeat
+sudo mkdir -p /etc/heartbeat
+sudo cp config.toml /etc/heartbeat/
+sudo cp launchd/com.seabit.heartbeat.plist /Library/LaunchDaemons/
+sudo launchctl load /Library/LaunchDaemons/com.seabit.heartbeat.plist
+
+# Check logs
+sudo tail -f /var/log/heartbeat.log
+```
+
+**Logs**: Written to `/var/log/heartbeat.log` (configured in launchd plist).
 
 ## Build Targets
 
